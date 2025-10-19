@@ -22,30 +22,27 @@ Lista funkcionalnosti:<br><br>1. Prikaz autobusa u realnom vremenu - Vizualni pr
 6. Favoriti
    - Spremanje omiljenih linija ili stanica za brži pristup.
 <hr>
-7. Notifikacije o dolasku autobusa
-   - Obavijesti korisniku kada se autobus približava odabranoj stanici.
-<hr>
-8. Filtriranje po vremenu i smjeru
+7. Filtriranje po vremenu i smjeru
    - Prikaz linija koje voze u određenom vremenskom periodu ili smjeru.
 <hr>
-9. Administratorski panel
+8. Administratorski panel
    - Omogućava dodavanje, uređivanje i brisanje linija, autobusa i stanica.
 <hr>
-10. Statistika i analitika vožnji
+9. Statistika i analitika vožnji
    - Pregled povijesnih podataka o točnosti vožnji i opterećenosti linija.
 <hr>
-11. Autentikacija i korisnički računi
+10. Autentikacija i korisnički računi
    - Registracija i prijava korisnika radi personaliziranog iskustva.
 <hr>
-12. Responsivno korisničko sučelje
+11. Responsivno korisničko sučelje
    - Prilagođeno prikazu na mobilnim uređajima, tabletima i računalima.
 <hr>
-13. Integracija s GPS modulom (simulacija ili API) - Dohvaćanje podataka o pozicijama autobusa putem API-ja ili simuliranih podataka.
+12. Integracija s GPS modulom (simulacija ili API) - Dohvaćanje podataka o pozicijama autobusa putem API-ja ili simuliranih podataka.
 <hr>
 <br> Opcionalno:<br><br>
-14. Kupnja karata online
+13. Kupnja karata online
 - Korisnik kupuje kartu putem sustava.
 <hr>
-15. Popis prodajnih mjesta
+14. Popis prodajnih mjesta
 - Pregled fizičkih lokacija gdje se mogu kupiti karte (kiosci, stanice).
 <hr>
