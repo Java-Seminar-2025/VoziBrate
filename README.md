@@ -3,6 +3,8 @@ Kasni mi bus
 
 Aplikacija služi za praćenje gradskih autobusa u realnom vremenu. Korisnicima omogućava pregled linija, rasporeda vožnje, trenutne lokacije autobusa te procijenjenog vremena dolaska na svaku stanicu. Sustav je zamišljen kao full-stack rješenje s korisničkim sučeljem, poslužiteljskim slojem i bazom podataka koja pohranjuje podatke o rutama, vozilima i stanicama.
 
+
+
 Lista funkcionalnosti:
 
 Prikaz autobusa u realnom vremenu
