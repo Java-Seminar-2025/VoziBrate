@@ -16,8 +16,8 @@ Lista funkcionalnosti:<br><br>1. Prikaz autobusa u realnom vremenu - Vizualni pr
 4. Procijenjeno vrijeme dolaska
    - Prikaz predviđenog vremena dolaska autobusa na svaku stanicu.
 <hr>
-5. Pretraga stanica i linija
-   - Mogućnost brzog pronalaska određene stanice ili linije putem tražilice.
+5. Pretraga linija
+   - Mogućnost brzog pronalaska linije putem tražilice.
 <hr>
 6. Favoriti
    - Spremanje omiljenih linija ili stanica za brži pristup.
