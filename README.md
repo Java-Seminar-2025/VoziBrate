@@ -8,17 +8,17 @@ Aplikacija služi za praćenje gradskih autobusa u realnom vremenu. Korisnicima 
 Lista funkcionalnosti:
 
 1. Prikaz autobusa u realnom vremenu
-- Vizualni prikaz trenutne pozicije autobusa na karti.
-<br>
+   - Vizualni prikaz trenutne pozicije autobusa na karti.
+
 2. Pregled rasporeda vožnje
-- Detaljan prikaz polazaka i dolazaka za svaku liniju.
+   - Detaljan prikaz polazaka i dolazaka za svaku liniju.
 <br>
 3. Pregled linija i ruta
-- Popis svih autobusnih linija s prikazom rute i pripadajućih stanica.
+   - Popis svih autobusnih linija s prikazom rute i pripadajućih stanica.
 <br>
 4. Procijenjeno vrijeme dolaska
    - Prikaz predviđenog vremena dolaska autobusa na svaku stanicu.
-
+<br>
 - Pretraga stanica i linija - Mogućnost brzog pronalaska određene stanice ili linije putem tražilice.
 
 - Favoriti - Spremanje omiljenih linija ili stanica za brži pristup.
