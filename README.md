@@ -43,5 +43,5 @@ Lista funkcionalnosti:<br><br>1. Prikaz autobusa u realnom vremenu - Vizualni pr
 13. Integracija s GPS modulom (simulacija ili API) - Dohvaćanje podataka o pozicijama autobusa putem API-ja ili simuliranih podataka.
 <hr>
 <br> Opcionalno:<br>
-•Kupnja karata online
- -Korisnik  kupuje kartu putem sustava.
+14. Kupnja karata onlineKorisnik - kupuje kartu putem sustava.
+<hr>
