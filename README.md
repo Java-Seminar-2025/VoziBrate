@@ -12,10 +12,10 @@ Lista funkcionalnosti:
 <br>
 2. Pregled rasporeda vožnje
 - Detaljan prikaz polazaka i dolazaka za svaku liniju.
-
+<br>
 3. Pregled linija i ruta
-	- Popis svih autobusnih linija s prikazom rute i pripadajućih stanica.
-
+- Popis svih autobusnih linija s prikazom rute i pripadajućih stanica.
+<br>
 4. Procijenjeno vrijeme dolaska
    - Prikaz predviđenog vremena dolaska autobusa na svaku stanicu.
 
