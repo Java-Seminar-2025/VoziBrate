@@ -9,12 +9,15 @@ Lista funkcionalnosti:
 
 1. Prikaz autobusa u realnom vremenu
 	- Vizualni prikaz trenutne pozicije autobusa na karti.
-<br>
-- Pregled rasporeda vožnje - Detaljan prikaz polazaka i dolazaka za svaku liniju.
 
-- Pregled linija i ruta - Popis svih autobusnih linija s prikazom rute i pripadajućih stanica.
+2. Pregled rasporeda vožnje
+	- Detaljan prikaz polazaka i dolazaka za svaku liniju.
 
-- Procijenjeno vrijeme dolaska - Prikaz predviđenog vremena dolaska autobusa na svaku stanicu.
+3. Pregled linija i ruta
+	- Popis svih autobusnih linija s prikazom rute i pripadajućih stanica.
+
+4. Procijenjeno vrijeme dolaska
+   - Prikaz predviđenog vremena dolaska autobusa na svaku stanicu.
 
 - Pretraga stanica i linija - Mogućnost brzog pronalaska određene stanice ili linije putem tražilice.
 
