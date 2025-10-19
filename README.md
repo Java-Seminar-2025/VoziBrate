@@ -39,5 +39,7 @@ Lista funkcionalnosti:<br><br>1. Prikaz autobusa u realnom vremenu - Vizualni pr
 <hr>
 12. Responsivno korisničko sučelje
    - Prilagođeno prikazu na mobilnim uređajima, tabletima i računalima.
-<hr>13. Integracija s GPS modulom (simulacija ili API)
+<hr>
+
+13. Integracija s GPS modulom (simulacija ili API)
    - Dohvaćanje podataka o pozicijama autobusa putem API-ja ili simuliranih podataka.
