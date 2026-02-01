@@ -1,5 +1,5 @@
 package com.bus.bus_tracker.service;
-/*
+
 import com.bus.bus_tracker.entity.BusEntity;
 import com.bus.bus_tracker.entity.BusPositionEntity;
 import com.bus.bus_tracker.repository.BusPositionRepository;
@@ -25,48 +25,58 @@ public class PrometkoFetcherService {
     private final BusRepository busRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private final String API_URL = "https://api.split.prometko.si/vehicles";
+    private final String API_URL = "https://api.split.prometko.si/vehicles"; // Prometko API endpoint
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 5000)// svakih 5 sekundi dohvaća podatke s vanjskog API-ja
     public void fetchRealData() {
         try {
+            // postavljanje HTTP headera (User-Agent zbog API-a da prihvati request)
             HttpHeaders headers = new HttpHeaders();
             headers.set("User-Agent",
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
+            // GET request prema Prometko API-ju
             ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.GET, entity, String.class);
-            String jsonResponse = response.getBody();
+            String jsonResponse = response.getBody(); // JSON odgovor API-ja
 
+            // parsiranje JSON odgovora
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(jsonResponse);
-            JsonNode vehicles = root.get("data");
+            JsonNode vehicles = root.get("data");// polje "data" s informacijama o vozilima
 
             int count = 0;
             if (vehicles != null && vehicles.isArray()) {
                 for (JsonNode v : vehicles) {
-                    JsonNode garageNode = v.get("garageNumber");
+                    JsonNode garageNode = v.get("garageNumber");// dohvat garageNumber-a (identifikator autobusa)
                     if (garageNode == null || garageNode.isNull()) continue;
 
                     String garageNumberRaw = garageNode.asText();
+
+                    // uklanjamo sve osim brojeva (npr. "BUS-123" -> "123")
                     String digitsOnly = garageNumberRaw.replaceAll("[^\\d]", "");
                     if (digitsOnly.isEmpty()) continue;
 
                     String garageNumber = String.valueOf(Long.parseLong(digitsOnly));
 
+                    // pronalazak postojećeg autobusa ili kreiranje novog
                     BusEntity bus = busRepository.findByBusNumber(garageNumber)
                             .orElseGet(() -> createNewBus(garageNumber));
 
+                    // dohvat GPS koordinata
                     JsonNode latNode = v.get("latitude");
                     JsonNode lngNode = v.get("longitude");
                     if (latNode == null || lngNode == null || latNode.isNull() || lngNode.isNull()) continue;
 
+                    // kreiranje novog GPS zapisa
                     BusPositionEntity pos = new BusPositionEntity();
-                    pos.setBus(bus);
+                    pos.setBus(bus); // povezivanje s autobusom
                     pos.setGpsLat(latNode.asDouble());
                     pos.setGpsLng(lngNode.asDouble());
-                    pos.setTimestamp(LocalDateTime.now());
+                    pos.setTimestamp(LocalDateTime.now()); // vrijeme zapisa (Local time)
+
+                    // dohvat kratkog imena rute (ako postoji)
                     JsonNode rsnNode = v.get("routeShortName");
                     if (rsnNode != null && !rsnNode.isNull()) {
                         String rsn = rsnNode.asText();
@@ -75,18 +85,20 @@ public class PrometkoFetcherService {
                         }
                     }
 
+                    // spremanje GPS pozicije u bazu
                     positionRepository.save(pos);
                     count++;
                 }
             }
             System.out.println("Successfully fetched " + count + " buses from the Prometko API!");
 
-        } catch (Exception e) {
+        } catch (Exception e) { // hvatanje grešaka ako API nije dostupan ili JSON nije valjan
             System.err.println(" Error in fetch: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    // metoda za kreiranje novog autobusa ako još ne postoji u bazi
     private BusEntity createNewBus(String garageNumber) {
         System.out.println("New bus detected: " + garageNumber);
         BusEntity newBus = new BusEntity();
@@ -95,4 +107,3 @@ public class PrometkoFetcherService {
         return busRepository.save(newBus);
     }
 }
-*/

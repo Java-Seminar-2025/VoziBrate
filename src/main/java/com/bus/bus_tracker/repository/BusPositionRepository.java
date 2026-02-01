@@ -17,11 +17,11 @@ public interface BusPositionRepository extends JpaRepository<BusPositionEntity, 
         SELECT DISTINCT ON (bus_id) *
         FROM bus_positions
         ORDER BY bus_id, timestamp DESC
-        """, nativeQuery = true)
+        """, nativeQuery = true) // query za dobijanje najnovijeg zapisa po bus_id
     List<BusPositionEntity> findLatestPerBus();
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM BusPositionEntity p WHERE p.timestamp < :cutoff")
+    @Query("DELETE FROM BusPositionEntity p WHERE p.timestamp < :cutoff") // brisanje starih zapisa starijih od cutoff vremena
     int deleteOlderThan(LocalDateTime cutoff);
 }

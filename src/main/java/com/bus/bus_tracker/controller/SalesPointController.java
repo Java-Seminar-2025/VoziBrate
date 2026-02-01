@@ -16,12 +16,15 @@ public class SalesPointController {
 
     @GetMapping
     public String page(Model model) {
+        // dohvat svih prodajnih mjesta iz baze
         model.addAttribute("salesPoints", service.getAll());
+        // vraća admin Thymeleaf template (lista + forma)
         return "sales_points";
     }
 
     @PostMapping
     public String create(@ModelAttribute SalesPointRequestDto dto) {
+        // kreiranje novog prodajnog mjesta iz podataka forme
         service.create(dto);
         return "redirect:/admin/sales-points";
     }
@@ -29,7 +32,9 @@ public class SalesPointController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id) {
+        // brisanje prodajnog mjesta po ID-u
         service.delete(id);
+        // povratak na admin listu
         return "redirect:/admin/sales-points";
     }
 }

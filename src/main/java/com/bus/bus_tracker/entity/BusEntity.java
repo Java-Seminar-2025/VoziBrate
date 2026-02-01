@@ -32,4 +32,6 @@ public class BusEntity {
     @JsonIgnore
     @OneToMany(mappedBy = "bus", cascade = CascadeType.ALL)
     private List<BusPositionEntity> positions;
+
+    // podaci o autobusu spremaju se u bazi u tablici buses
 }

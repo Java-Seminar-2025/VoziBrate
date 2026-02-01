@@ -10,14 +10,21 @@
     <div class="auth-container">
 
         <div class="auth-logo">
-            <img th:src="@{/img/bus-icon.png}" alt="Bus" style="width: 28px; height: 28px; filter: brightness(0) invert(1);">
+            <img th:src="@{/img/bus-icon.png}" alt="Bus"
+                 style="width: 28px; height: 28px; filter: brightness(0) invert(1);">
         </div>
 
         <h1>Welcome Back</h1>
         <p class="subtitle">Login to access your account</p>
 
+        <!-- ❌ login error -->
         <div th:if="${param.error}" class="error-message">
             Wrong email or password!
+        </div>
+
+        <!-- ✅ registration success -->
+        <div th:if="${param.registered}" class="success-message">
+            Account created successfully. Please log in.
         </div>
 
         <form th:action="@{/user/login}" th:object="${userLoginDto}" method="post" class="auth-form">

@@ -12,11 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/sales-points")
 public class SalesPointUserController {
 
-    private final SalesPointService service;
+    private final SalesPointService service;// Service koji dohvaća prodajna mjesta iz baze
 
     @GetMapping
     public String page(Model model) {
+        // dohvat svih prodajnih mjesta iz baze
         model.addAttribute("salesPoints", service.getAll());
-        return "sales_points_user";
+        return "sales_points_user"; // vraća Thymeleaf template sales_points_user.html
     }
 }

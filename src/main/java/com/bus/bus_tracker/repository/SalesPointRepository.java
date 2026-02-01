@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SalesPointRepository extends JpaRepository<SalesPointEntity, Long> {
+    // SalesPointRepository omogućuje pristup tablici prodajnih mjesta i
+    // koristi standardne JPA metode za dohvat i upravljanje podacima
 }

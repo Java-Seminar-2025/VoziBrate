@@ -13,9 +13,9 @@ public class BusPositionCleanupService {
 
     private final BusPositionRepository positionRepository;
 
-    @Scheduled(initialDelay = 10_000L, fixedRate = 2 * 60 * 60 * 1000L)
+    @Scheduled(initialDelay = 10_000L, fixedRate = 2 * 60 * 60 * 1000L)// pokrece se na svakih 2 sata od starta apklikacije
     public void cleanupOldPositions() {
-        LocalDateTime cutoff = LocalDateTime.now().minusHours(2);
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(2); // brisanje pozicija starijih od 2 sata
         int deleted = positionRepository.deleteOlderThan(cutoff);
         System.out.println(" Cleanup: deleted " + deleted + " positions older then 2h");
     }

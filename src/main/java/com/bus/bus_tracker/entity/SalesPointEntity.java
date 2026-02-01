@@ -30,4 +30,5 @@ public class SalesPointEntity {
     @Column(name = "gps_lng", nullable = false)
     private Double gpsLng;
 }
+    // podaci o prodajnim mjestima spremaju se u bazi u tablici sales_points
 

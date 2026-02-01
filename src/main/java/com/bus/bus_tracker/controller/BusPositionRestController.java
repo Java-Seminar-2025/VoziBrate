@@ -16,9 +16,8 @@ public class BusPositionRestController {
 
     private final BusPositionRepository repo;
 
-    @GetMapping("/current")
+    @GetMapping("/current") // vraca listu zadnjih trenutnih pozicija svih autobusa i to se prikazuje na mapi/frontendu
     public List<BusPositionEntity> getCurrentPositions() {
         return repo.findLatestPerBus();
     }
-
 }

@@ -10,4 +10,4 @@ public class SalesPointRequestDto {
     private String address;
     private Double gpsLat;
     private Double gpsLng;
-}
+} // DTO za zahtjev za kreiranje ili ažuriranje prodajnog mjesta

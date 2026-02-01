@@ -32,4 +32,6 @@ public class BusPositionEntity {
     @Column(name = "route_short_name")
     private String routeShortName;
 
+    // podatci o poziciji autobusa spremaju se u bazi u tablici bus_positions
+
 }

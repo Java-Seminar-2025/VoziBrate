@@ -18,7 +18,6 @@ public class ScheduleService {
         return scheduleRepository.findByLine_IdAndDayOfWeekOrderByDeparture(lineId, dayOfWeek);
     }
 
-    // ✅ NOVO: filtriranje po vremenu
     public List<ScheduleEntity> getSchedulesForLineAndDayFiltered(
             Long lineId,
             int dayOfWeek,

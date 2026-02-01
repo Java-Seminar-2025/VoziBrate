@@ -28,11 +28,11 @@ public class LiveScheduleRestController {
 
     @PostMapping("/active-schedule")
     public ActiveScheduleResponseDto findActiveSchedule(
-            @RequestBody ActiveScheduleRequestDto req
-    ) {
+            @RequestBody ActiveScheduleRequestDto req // DTO koji dolazi iz frontend-a
+    ) { // pronalazi aktivni schedule na temelju linije, varijante i procijenjenog progresa busa (progressMin)
         String lineNumber = req.lineNumber() == null ? "" : req.lineNumber().trim();
         String variant = (req.variant() == null || req.variant().isBlank())
-                ? "A"
+                ? "A"  // default varijanta je A
                 : req.variant().trim().toUpperCase();
 
         if (lineNumber.isBlank()) {
@@ -44,6 +44,7 @@ public class LiveScheduleRestController {
 
         double progressMin = req.progressMin();
 
+        // dohvat linije iz baze po broju linije i varijanti
         LineEntity line = lineRepository
                 .findByLineNumberAndVariant(lineNumber, variant)
                 .orElseThrow(() ->
@@ -52,9 +53,11 @@ public class LiveScheduleRestController {
                         )
                 );
 
+        // današnji datum i dan u tjednu
         LocalDate today = LocalDate.now();
         int dow = today.getDayOfWeek().getValue();
 
+        // dohvat svih schedule-a za tu liniju i dan u tjednu
         List<ScheduleEntity> schedules =
                 scheduleService.getSchedulesForLineAndDay(line.getId(), dow);
 
@@ -66,14 +69,17 @@ public class LiveScheduleRestController {
             );
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(); // trenutno vrijeme
 
+        // tražimo schedule koji najbolje odgovara trenutnom progresu busa
         Optional<ScheduleEntity> best = schedules.stream()
                 .map(s -> new ScoredSchedule(s, scoreSchedule(now, today, s, progressMin)))
+                // scoreSchedule metoda izračunava koliko je schedule dobar za trenutnu poziciju busa
                 .filter(x -> x.score != null)
                 .min(Comparator.comparingDouble(x -> x.score))
                 .map(x -> x.schedule);
 
+        // fallback: ako nijedan nije idealan, uzmi onaj čiji je polazak najbliži sada
         ScheduleEntity chosen = best.orElseGet(() ->
                 schedules.stream()
                         .min(Comparator.comparingLong(s ->
@@ -121,14 +127,17 @@ public class LiveScheduleRestController {
             ScheduleEntity s,
             double progressMin
     ) {
+        // vrijeme polaska schedule-a za danas
         LocalDateTime dep = LocalDateTime.of(today, s.getDeparture());
 
+        // ako bus dolazi nazad idući dan, pomičemo datum za +1
         LocalDate arrDate =
                 s.isArrivalNextDay() ? today.plusDays(1) : today;
 
         LocalDateTime arr =
                 LocalDateTime.of(arrDate, s.getArrival());
 
+        // provjera ako je dolazak prije polaska smatra se da je dolazak sutra dan
         if (arr.isBefore(dep)) {
             arr = arr.plusDays(1);
         }

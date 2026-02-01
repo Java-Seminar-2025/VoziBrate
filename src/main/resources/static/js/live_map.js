@@ -1,10 +1,10 @@
-var map = L.map('map').setView([43.515, 16.45], 13);
+var map = L.map('map').setView([43.515, 16.45], 13);  // postavljanje početnog pogleda na mapu
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
 }).addTo(map);
 
-const MOVE_THRESHOLD_METERS = 5;
-const MOVING_HOLD_MS = 60000;
+const MOVE_THRESHOLD_METERS = 5; // Koliko  se bus mora maknut da ga smatramo u kretanju
+const MOVING_HOLD_MS = 60000; // Ako se nije pomakao 60s, označimo ga kao “stopped”
 
 var markers = {};
 
@@ -24,13 +24,13 @@ const MAX_DIST_TO_ROUTE_METERS = 250;
 let activeScheduleStops = null;
 let activeScheduleId = null;
 
-function clearRoute() {
+function clearRoute() { // zatvori prikaz rute ( kliknemo linija 5 pa onda negdje drugo )
     if (activeRouteLayer) {
         map.removeLayer(activeRouteLayer);
         activeRouteLayer = null;
     }
     activeStopMarkers.forEach(m => map.removeLayer(m));
-    activeStopMarkers = [];
+    activeStopMarkers = []; // spremaju se stanice a kad zatvorimo očistimo markere stanica
 
     activeRouteStops = null;
     activeRouteLine = null;
@@ -39,12 +39,12 @@ function clearRoute() {
     activeScheduleId = null;
 }
 
-function angleDiff(a, b) {
+function angleDiff(a, b) { // razlika između dva kuta u stupnjevima (0-360) ZA ikonicu smjera busa
     let d = Math.abs(a - b) % 360;
     return d > 180 ? 360 - d : d;
 }
 
-function findNearestStopIndex(stopsOrdered, busLatLng) {
+function findNearestStopIndex(stopsOrdered, busLatLng) { //funkcija za pronalaženje najbliže stanice prima listu stanica i lokaciju busa
     let bestIdx = -1;
     let bestDist = Infinity;
 
@@ -60,7 +60,7 @@ function findNearestStopIndex(stopsOrdered, busLatLng) {
     return bestIdx;
 }
 
-function calculateBearing(from, to) {
+function calculateBearing(from, to) { // izračunavanje smjera između dvije koordinate
     const lat1 = from.lat * Math.PI / 180;
     const lat2 = to.lat * Math.PI / 180;
     const dLng = (to.lng - from.lng) * Math.PI / 180;
@@ -71,9 +71,9 @@ function calculateBearing(from, to) {
 
     let brng = Math.atan2(y, x) * 180 / Math.PI;
     return (brng + 360) % 360;
-}
+}//sa prijasnjom funmkc angleDiff koristi se za smooth rotaciju
 
-function setMarkerHeading(marker, bearingDeg) {
+function setMarkerHeading(marker, bearingDeg) { //rotira ikonu autobusa na mapi tako da pokazuje smjer kretanja
     const el = marker.getElement();
     if (!el) return;
     const arrow = el.querySelector('.bus-arrow');
@@ -81,23 +81,24 @@ function setMarkerHeading(marker, bearingDeg) {
     arrow.style.transform = `rotate(${bearingDeg}deg)`;
 }
 
-function lockPopupInnerScroll(popup) {
-    if (!popup) return;
+function lockPopupInnerScroll(popup) { // onemogućava scrollanje mape kad je scrollamo unutar popup-a
+    if (!popup) return; //ako ne postoji onda prestani
     const el = popup.getElement();
     if (!el) return;
-    L.DomEvent.disableClickPropagation(el);
-    L.DomEvent.disableScrollPropagation(el);
+    L.DomEvent.disableClickPropagation(el); // onemogućava klikove da prolaze kroz popup
+    L.DomEvent.disableScrollPropagation(el); // onemogućava scrollanje da prolazi kroz popup
     const boxes = el.querySelectorAll(".route-info");
     boxes.forEach(box => {
         box.addEventListener("wheel", (e) => e.stopPropagation(), { passive: true });
         box.addEventListener("touchmove", (e) => e.stopPropagation(), { passive: true });
-    });
+    }); // prilikom scrollanja sadržaja u popup-u ne pomiče cijela mapa
 }
 
-function buildPopupContent(lineNum, lineName, gbr, reg) {
+function buildPopupContent(lineNum, lineName, gbr, reg) { //gradi sadržaj popup-a za svaki bus
     const safeLine = String(lineNum ?? "").trim();
     const safeId = String(gbr).trim();
 
+    //HTML PRIKAZ U POPUP-U
     return `
         <div class="popup-center">
             <h3 class="popup-title">Line ${safeLine}</h3>
@@ -119,27 +120,36 @@ function buildPopupContent(lineNum, lineName, gbr, reg) {
 }
 
 async function fetchStops(lineNum, variant) {
+    // Funkcija ide na backend i dohvaća stanice za određenu liniju i varijantu,
+    // te ih vraća sortirane po redoslijedu na ruti
     try {
         const safeLine = encodeURIComponent(String(lineNum).trim());
         const safeVar = encodeURIComponent(String(variant).trim());
 
+        // GET request prema API-ju koji vraća stanice za zadanu liniju i varijantu
         const res = await fetch(`/api/lines/${safeLine}/route?variant=${safeVar}`);
         if (!res.ok) return [];
 
+        // Parsiranje JSON odgovora u JavaScript objekt
         const stops = await res.json();
-        return (stops ?? []).slice().sort((a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0));
+
+        // Sortiranje stanica po rednom broju na ruti
+        return (stops ?? []).slice().sort(
+            (a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0)
+        );
     } catch (err) {
         console.warn("fetchStops failed:", lineNum, variant, err);
         return [];
     }
 }
 
-async function fetchActiveScheduleId(lineNum, variant, progressMin) {
+
+async function fetchActiveScheduleId(lineNum, variant, progressMin) { //funkcija za dohvaćanje aktivnog rasporeda
     try {
         const res = await fetch(`/api/live/active-schedule`, {
-            method: "POST",
+            method: "POST", // POST request prema API-ju za dohvaćanje aktivnog rasporeda
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: JSON.stringify({ // tijelo zahtjeva s podacima odgovara ActiveScheduleRequestDTO-u na backendu
                 lineNumber: String(lineNum).trim(),
                 variant: String(variant).trim(),
                 progressMin: Number(progressMin)
@@ -157,12 +167,13 @@ async function fetchActiveScheduleId(lineNum, variant, progressMin) {
         console.warn("fetchActiveScheduleId failed:", e);
         return null;
     }
-}
+} //šalje podatke o liniji i trenutnom progresu autobusa backendu
+  //i dobije natrag ID aktivnog rasporeda (scheduleId)
 
 
-async function fetchScheduleStops(scheduleId) {
+async function fetchScheduleStops(scheduleId) { //funkcija za dohvaćanje stanica iz određenog rasporeda nakon što dobijemo scheduleId
     try {
-        const res = await fetch(`/api/live/schedules/${encodeURIComponent(String(scheduleId))}/stops`);
+        const res = await fetch(`/api/live/schedules/${encodeURIComponent(String(scheduleId))}/stops`); // GET request prema API-ju za dohvaćanje stanica rasporeda
         if (!res.ok) return [];
         const stops = await res.json();
         return (stops ?? []).slice().sort((a, b) => (a.stopSequence ?? 0) - (b.stopSequence ?? 0));
@@ -172,12 +183,12 @@ async function fetchScheduleStops(scheduleId) {
     }
 }
 
-function toHHMM(timeStr) {
+function toHHMM(timeStr) { // pretvara vremenski string u format HH:MM
     if (!timeStr) return null;
     return String(timeStr).slice(0, 5);
 }
 
-function minDistanceToStopsMeters(stopsOrdered, busLatLng) {
+function minDistanceToStopsMeters(stopsOrdered, busLatLng) { //računa minimalnu udaljenost od busa do najbliže stanice u metrima
     let best = Infinity;
     for (const s of stopsOrdered) {
         if (s.lat == null || s.lng == null) continue;
@@ -190,19 +201,20 @@ function minDistanceToStopsMeters(stopsOrdered, busLatLng) {
 function metersPerDegLat() { return 111320; }
 function metersPerDegLng(lat) { return 111320 * Math.cos(lat * Math.PI / 180); }
 
-function toXY(lat, lng, refLat) {
+function toXY(lat, lng, refLat) { // pretvara geografske koordinate u metričke koordinate X,Y
     return { x: lng * metersPerDegLng(refLat), y: lat * metersPerDegLat() };
 }
 
 function pointToSegmentDistAndT(pLat, pLng, aLat, aLng, bLat, bLng) {
+    // Koliko je bus blizu linije rute i je li bliže početku ili kraju tog dijela
     const refLat = (aLat + bLat) / 2;
 
-    const P = toXY(pLat, pLng, refLat);
-    const A = toXY(aLat, aLng, refLat);
-    const B = toXY(bLat, bLng, refLat);
+    const P = toXY(pLat, pLng, refLat); //trenutna pozicija busa
+    const A = toXY(aLat, aLng, refLat); //početak segmenta rute
+    const B = toXY(bLat, bLng, refLat); //kraj segmenta rute
 
-    const ABx = B.x - A.x, ABy = B.y - A.y;
-    const APx = P.x - A.x, APy = P.y - A.y;
+    const ABx = B.x - A.x, ABy = B.y - A.y; // smjer segmenta rute
+    const APx = P.x - A.x, APy = P.y - A.y; //pozicija busa u odnosu na početak segmenta
 
     const ab2 = ABx * ABx + ABy * ABy;
     if (ab2 === 0) {
@@ -210,7 +222,8 @@ function pointToSegmentDistAndT(pLat, pLng, aLat, aLng, bLat, bLng) {
         return { distMeters: Math.sqrt(dx * dx + dy * dy), t: 0 };
     }
 
-    let t = (APx * ABx + APy * ABy) / ab2;
+    let t = (APx * ABx + APy * ABy) / ab2; // t govori gdje se bus nalazi između A i B
+                                           // t=0 znači na A, t=1 znači na B, između 0 i 1 znači negdje između A i B
     t = Math.max(0, Math.min(1, t));
 
     const Cx = A.x + t * ABx;
@@ -221,16 +234,17 @@ function pointToSegmentDistAndT(pLat, pLng, aLat, aLng, bLat, bLng) {
 }
 
 function estimateProgressMinutesFromStart(orderedStops, busLatLng) {
+    //gdje se bus nalazi na ruti u smislu minuta od početka rute
     if (!orderedStops || orderedStops.length < 2) return null;
 
-    let best = { idx: -1, dist: Infinity, t: 0 };
+    let best = { idx: -1, dist: Infinity, t: 0 };//najblizi segment rute idx=indeks segmenta, dist=udaljenost od segmenta, t=pozicija na segmentu
 
-    for (let i = 0; i < orderedStops.length - 1; i++) {
+    for (let i = 0; i < orderedStops.length - 1; i++) { // prolazimo kroz sve segmente rute
         const a = orderedStops[i];
         const b = orderedStops[i + 1];
         if ([a.lat, a.lng, b.lat, b.lng].some(v => v == null)) continue;
 
-        const r = pointToSegmentDistAndT(
+        const r = pointToSegmentDistAndT( //računamo udaljenost busa do segmenta rute
             busLatLng.lat, busLatLng.lng,
             a.lat, a.lng,
             b.lat, b.lng
@@ -252,13 +266,14 @@ function estimateProgressMinutesFromStart(orderedStops, busLatLng) {
     return { progressMin, segIdx: best.idx, distMeters: best.dist };
 }
 
-function pad2(n) { return String(n).padStart(2, "0"); }
+function pad2(n) { return String(n).padStart(2, "0"); }//dodaje vodeću nulu brojevima manjim od 10
 
-function formatHHMM(dateObj) {
+function formatHHMM(dateObj) { //formatira Date objekt u HH:MM format koristi pad2 funkciju
     return `${pad2(dateObj.getHours())}:${pad2(dateObj.getMinutes())}`;
 }
 
 function renderRouteInfo(orderedStops, busId, nearestIdx, etaBase, scheduleStops) {
+    //pronalazi HTML element za prikaz informacija o ruti u popup-u busa
     const box = document.getElementById(`route-info-${String(busId).trim()}`);
     if (!box) return;
 
@@ -267,18 +282,18 @@ function renderRouteInfo(orderedStops, busId, nearestIdx, etaBase, scheduleStops
         return;
     }
 
-    const timeByStationId = {};
+    const timeByStationId = {}; //mapa za brzo pronalaženje vremena po ID-u stanice
     if (Array.isArray(scheduleStops)) {
         scheduleStops.forEach(ss => {
             if (ss && ss.stationId != null) timeByStationId[String(ss.stationId)] = ss;
         });
     }
 
-    box.innerHTML = orderedStops.map((s, i) => {
+    box.innerHTML = orderedStops.map((s, i) => { //generira HTML za svaku stanicu na ruti
         const isPassed = nearestIdx >= 0 && i <= nearestIdx;
         const isNext = nearestIdx >= 0 && i === nearestIdx + 1;
-
         const cls = isNext ? "next" : (isPassed ? "passed" : "future");
+        //označimo gdje je bus već bio, gdje ide sljedeće i što ga čeka
 
         let timeTxt = `<span class="route-stop-time route-stop-time-empty">--:--</span>`;
 
@@ -290,7 +305,7 @@ function renderRouteInfo(orderedStops, busId, nearestIdx, etaBase, scheduleStops
             const nd = ss.nextDay ? " (+1)" : "";
             timeTxt = `<span class="route-stop-time">${hhmm}${nd}</span>`;
         }
-        else {
+        else {  //ako nemamo raspored, pokušajmo izračunati ETA pomocu etaBase i minutesFromStart
             const mm = Number(s.minutesFromStart);
             if (etaBase && Number.isFinite(mm)) {
                 const eta = new Date(etaBase.getTime() + mm * 60000);
@@ -311,7 +326,7 @@ function renderRouteInfo(orderedStops, busId, nearestIdx, etaBase, scheduleStops
     }).join("");
 }
 
-function renderRouteOnMap(orderedStops, lineNum) {
+function renderRouteOnMap(orderedStops, lineNum) { // prikazuje rutu na mapi
     clearRoute();
 
     activeRouteStops = orderedStops;
@@ -332,13 +347,13 @@ function renderRouteOnMap(orderedStops, lineNum) {
     refreshActiveRouteProgress();
 }
 
-function refreshActiveRouteProgress() {
+function refreshActiveRouteProgress() { // osvježava prikaz napretka rute na mapi
     if (!activeRouteStops || !activeRouteLine || !activeBusId) return;
 
     activeStopMarkers.forEach(m => map.removeLayer(m));
     activeStopMarkers = [];
 
-    const busMarker = markers[activeBusId];
+    const busMarker = markers[activeBusId];//dohvaća marker busa koji je trenutno aktivan za tu liniju
 
     let nearestIdx = -1;
     let etaBase = null;
@@ -380,11 +395,11 @@ function refreshActiveRouteProgress() {
     });
 }
 
-window.showRoute = async function (busId, lineNum, variant = "A") {
+window.showRoute = async function (busId, lineNum, variant = "A") { //prikazuje rutu za određeni bus i liniju s odabranom varijantom
     try {
         lineNum = String(lineNum).trim();
         busId = String(busId).trim();
-        variant = (variant === "B") ? "B" : "A";
+        variant = (variant === "B") ? "B" : "A"; //default je A varijanta
 
         lastClickedLineNum = lineNum;
         activeBusId = busId;
@@ -392,7 +407,7 @@ window.showRoute = async function (busId, lineNum, variant = "A") {
         activeScheduleStops = null;
         activeScheduleId = null;
 
-        const orderedStops = await fetchStops(lineNum, variant);
+        const orderedStops = await fetchStops(lineNum, variant); //dohvaća stanice za zadanu liniju i varijantu
         if (!orderedStops.length) {
             alert(`No route ${variant} for line ${lineNum}`);
             return;
@@ -407,6 +422,7 @@ window.showRoute = async function (busId, lineNum, variant = "A") {
 };
 
 window.showRouteAuto = async function (busId, lineNum) {
+//automatski odabire najbolju varijantu rute za prikaz na temelju lokacije busa
     try {
         lineNum = String(lineNum).trim();
         busId = String(busId).trim();
@@ -421,8 +437,8 @@ window.showRouteAuto = async function (busId, lineNum) {
 
         const busLatLng = busMarker.getLatLng();
 
-        const results = await Promise.allSettled([
-            fetchStops(lineNum, "A"),
+        const results = await Promise.allSettled([ //dohvaća stanice za obje varijante rute paralelno
+            fetchStops(lineNum, "A"), //ako jedna varijanta ne uspije, druga će se i dalje koristiti
             fetchStops(lineNum, "B")
         ]);
 
@@ -431,6 +447,7 @@ window.showRouteAuto = async function (busId, lineNum) {
 
         if (!bStops.length && aStops.length) return window.showRoute(busId, lineNum, "A");
         if (!aStops.length && bStops.length) return window.showRoute(busId, lineNum, "B");
+        //ako samo A postoji → A, ako samo B postoji → B
         if (!aStops.length && !bStops.length) {
             alert("No route for this line " + lineNum);
             return;
@@ -446,6 +463,7 @@ window.showRouteAuto = async function (busId, lineNum) {
         let scoreB = distB;
 
         if (busMarker && typeof busMarker._heading === 'number' && busMarker._heading !== null) {
+        //smjer kretanja busa koristi se za laksi odabir A/B varijante
             const busHeading = busMarker._heading;
 
             if (progA && aStops[progA.segIdx] && aStops[progA.segIdx + 1]) {
@@ -465,16 +483,14 @@ window.showRouteAuto = async function (busId, lineNum) {
 
         let chosen = (scoreA <= scoreB) ? "A" : "B";
 
-        const prev = lastVariantByLine[lineNum];
+        const prev = lastVariantByLine[lineNum];//ako su A i B jako slični, ostani na prethodnom izboru
         if (prev && Math.abs(scoreA - scoreB) < HYSTERESIS_METERS) {
             chosen = prev;
         }
 
         lastVariantByLine[lineNum] = chosen;
-
         const chosenStops = (chosen === "A") ? aStops : bStops;
-
-        renderRouteOnMap(chosenStops, lineNum);
+        renderRouteOnMap(chosenStops, lineNum); //prikazuje odabranu rutu na mapi
 
         activeScheduleStops = null;
         activeScheduleId = null;
@@ -495,13 +511,13 @@ window.showRouteAuto = async function (busId, lineNum) {
     }
 };
 
-function updateBuses() {
-    fetch('/api/positions/current')
+function updateBuses() { //funkcija za ažuriranje pozicija busova na mapi
+    fetch('/api/positions/current') // dohvaća trenutne pozicije busova s backend API-ja
         .then(res => res.json())
         .then(data => {
-            const now = Date.now();
+            const now = Date.now(); ///now za racunanje (jeli bus u pokretu ili ne)
 
-            data.forEach(pos => {
+            data.forEach(pos => { // prolazi kroz svaku poziciju busa u dohvaćenim podacima
                 if (!pos || !pos.bus || !pos.bus.busNumber) return;
 
                 const id = pos.bus.busNumber;
@@ -512,12 +528,14 @@ function updateBuses() {
                 let routeKey = null;
 
                 if (pos.bus.line && pos.bus.line.lineNumber) {
+                //ako je bus povezan s linijom u bazi, marker prikazuje broj linije (5)
                     routeKey = String(pos.bus.line.lineNumber).trim();
                     displayText = routeKey;
                     lineName = pos.bus.line.name ?? "Nepoznata";
                 }
 
                 if (pos.routeShortName && pos.routeShortName.trim() !== "") {
+                //ako routeShortName dode iz prometko api-a line name postaje prometko)
                     displayText = pos.routeShortName.trim();
                     if (!routeKey) routeKey = displayText;
                     lineName = "Prometko";
@@ -527,7 +545,7 @@ function updateBuses() {
 
                 const newLatLng = L.latLng(pos.gpsLat, pos.gpsLng);
 
-                if (markers[id]) {
+                if (markers[id]) { //ako marker već postoji, ažurira njegovu poziciju i smjer
                     const marker = markers[id];
                     const oldLatLng = marker.getLatLng();
                     const distance = oldLatLng.distanceTo(newLatLng);
@@ -537,7 +555,7 @@ function updateBuses() {
                     if (!marker.lastMoveTime) marker.lastMoveTime = now;
                     if (marker._isMoving === undefined) marker._isMoving = true;
 
-                    if (distance > MOVE_THRESHOLD_METERS) {
+                    if (distance > MOVE_THRESHOLD_METERS) {  //ako se marker pomaknuo dovoljno daleko ažuriraj vrijeme posljednjeg pomaka i smjer
                         marker.lastMoveTime = now;
                         marker._heading = calculateBearing(oldLatLng, newLatLng);
                         setMarkerHeading(marker, marker._heading);
@@ -545,7 +563,7 @@ function updateBuses() {
 
                     const isActive = (now - marker.lastMoveTime) < MOVING_HOLD_MS;
 
-                    if (marker._isMoving !== isActive) {
+                    if (marker._isMoving !== isActive) { //ako se stanje kretanja promijenilo, ažuriraj stil markera
                         marker._isMoving = isActive;
                         updateMarkerStyle(marker, displayText, isActive);
 
@@ -562,7 +580,7 @@ function updateBuses() {
                         marker.setPopupContent(buildPopupContent(routeKey, lineName, id, reg));
                     }
 
-                } else {
+                } else { //ako marker ne postoji, stvara novi marker na mapi
                     const icon = L.divIcon({
                         className: 'custom-div-icon',
                         html: `<div class="bus-marker moving">${displayText}<div class="bus-arrow"></div></div>`,
@@ -592,7 +610,8 @@ function updateBuses() {
         .catch(err => console.error("Greška:", err));
 }
 
-function updateMarkerText(marker, text) {
+function updateMarkerText(marker, text) { //promijeni tekst na markeru autobusa npr 1234 u 5 jer je bus 1234 na liniji 5)
+
     const el = marker.getElement();
     if (!el) return;
     const div = el.querySelector('.bus-marker');
@@ -631,5 +650,5 @@ function updateMarkerStyle(marker, text, isActive) {
     div.classList.toggle('stopped', !isActive);
 }
 
-setInterval(updateBuses, 2000);
+setInterval(updateBuses, 2000); // ažurira pozicije busova svakih 2 sekunde request na API
 updateBuses();

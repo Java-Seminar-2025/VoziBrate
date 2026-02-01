@@ -11,7 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.bus.bus_tracker.service.LineService;
 
-
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -20,7 +19,6 @@ public class UserController {
     private final UserService userService;
     private final LineService lineService;
 
-
     @GetMapping("/register")
     public String showRegisterPage(Model model) {
         model.addAttribute("userRegisterDto", new UserRegisterDto());
@@ -28,17 +26,22 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String register(@ModelAttribute UserRegisterDto dto, Model model) {
-        var response = userService.register(dto);
-        model.addAttribute("userName", response.getName());
-        return "register_success";
+    public String register(
+            @ModelAttribute("userRegisterDto") UserRegisterDto dto,
+            Model model
+    ) {
+        try {
+            userService.register(dto);
+            return "redirect:/user/login?registered=true";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "register";
+        }
     }
 
     @GetMapping("/login")
-    public String showLoginPage(Model model, @ModelAttribute("userLoginDto") UserLoginDto userLoginDto) {
-        if (userLoginDto == null) {
-            model.addAttribute("userLoginDto", new UserLoginDto());
-        }
+    public String showLoginPage(Model model) {
+        model.addAttribute("userLoginDto", new UserLoginDto());
         return "login";
     }
 
@@ -55,7 +58,6 @@ public class UserController {
                     .orElse("N/A"));
         }
 
-        // 🔹 DODANO
         model.addAttribute("lines", lineService.getAll());
 
         model.addAttribute("days", java.util.List.of(
@@ -70,5 +72,4 @@ public class UserController {
 
         return "login_success";
     }
-
 }
